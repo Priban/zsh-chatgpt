@@ -42,14 +42,20 @@ def send_to_gpt3(text):
     )
 
     full_response = ''
+    char_count = 0
     for chunk in completion:
         delta = chunk.choices[0].delta
         delta_content = delta.get("content", "")  # Use get() to provide a default value if 'content' is absent
         full_response += delta_content
         if delta_content:  # Only print if there's content
+            if "\n" in delta_content: char_count = 0
+            if char_count > RESPONSE_TEXT_WIDTH and delta_content[0] == " ":
+                delta_content = "\n" + delta_content[1:] 
+                char_count = -1 # To include the "\n" in the new delta_content
             sys.stdout.write(delta_content)
             sys.stdout.flush()            
- 
+            char_count += len(delta_content)
+
     return full_response
 
 def save_conversation(question, answer):
